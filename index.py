@@ -5,64 +5,33 @@ Run: streamlit run app.py
 All .pkl files must be in the same folder as this script.
 """
 
-# ── Dependency check & auto-install ──────────────────────────────────────────
+# ── Auto-install missing dependencies ────────────────────────────────────────
 import sys, subprocess
 
+# Maps: import_name -> pip package name
 REQUIRED = {
-    "streamlit":  "streamlit",
-    "numpy":      "numpy",
-    "joblib":     "joblib",
-    "cv2":        "opencv-python",
-    "matplotlib": "matplotlib",
-    "PIL":        "Pillow",
-    "sklearn":    "scikit-learn",
+    "streamlit":    "streamlit",
+    "numpy":        "numpy",
+    "joblib":       "joblib",
+    "cv2":          "opencv-python",
+    "matplotlib":   "matplotlib",
+    "PIL":          "Pillow",
+    "sklearn":      "scikit-learn",
 }
 
 _missing = []
-for _mod, _pkg in REQUIRED.items():
+for _import_name, _pip_name in REQUIRED.items():
     try:
-        __import__(_mod)
+        __import__(_import_name)
     except ImportError:
-        _missing.append(_pkg)
+        _missing.append(_pip_name)
 
 if _missing:
-    print(f"[Thermo Spectroscope] Installing: {', '.join(_missing)}")
-    _installed = []
-    _failed    = []
-    for _pkg in _missing:
-        # Try standard install first, then --user, then --break-system-packages
-        for _flags in [[], ["--user"], ["--break-system-packages"]]:
-            try:
-                subprocess.run(
-                    [sys.executable, "-m", "pip", "install", "--quiet", _pkg] + _flags,
-                    check=True,
-                    capture_output=True,
-                )
-                _installed.append(_pkg)
-                break
-            except Exception:
-                continue
-        else:
-            _failed.append(_pkg)
-
-    if _failed:
-        # Cannot install — show a readable error via streamlit if available,
-        # otherwise print and exit cleanly
-        _msg = (
-            f"Could not install required packages: {', '.join(_failed)}.\n"
-            f"Please run manually:\n\n"
-            f"    pip install {' '.join(_failed)}\n\n"
-            f"Then restart the app."
-        )
-        try:
-            import streamlit as _st
-            _st.error(f"⚠ Missing packages: **{', '.join(_failed)}**\n\n"
-                      f"Run this in your terminal, then restart:\n\n"
-                      f"```\npip install {' '.join(_failed)}\n```")
-            _st.stop()
-        except Exception:
-            print(_msg)
-            sys.exit(1)
+    print(f"\n[Thermo Spectroscope] Installing missing packages: {', '.join(_missing)}\n")
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "--quiet"] + _missing
+    )
+    print("\n[Thermo Spectroscope] Installation complete. Starting app...\n")
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 import streamlit as st

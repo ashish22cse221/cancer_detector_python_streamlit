@@ -5,6 +5,35 @@ Run: streamlit run app.py
 All .pkl files must be in the same folder as this script.
 """
 
+# ── Auto-install missing dependencies ────────────────────────────────────────
+import sys, subprocess
+
+# Maps: import_name -> pip package name
+REQUIRED = {
+    "streamlit":    "streamlit",
+    "numpy":        "numpy",
+    "joblib":       "joblib",
+    "cv2":          "opencv-python",
+    "matplotlib":   "matplotlib",
+    "PIL":          "Pillow",
+    "sklearn":      "scikit-learn",
+}
+
+_missing = []
+for _import_name, _pip_name in REQUIRED.items():
+    try:
+        __import__(_import_name)
+    except ImportError:
+        _missing.append(_pip_name)
+
+if _missing:
+    print(f"\n[Thermo Spectroscope] Installing missing packages: {', '.join(_missing)}\n")
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "--quiet"] + _missing
+    )
+    print("\n[Thermo Spectroscope] Installation complete. Starting app...\n")
+
+# ── Imports ───────────────────────────────────────────────────────────────────
 import streamlit as st
 import numpy as np
 import joblib, os, io, time, cv2, matplotlib
